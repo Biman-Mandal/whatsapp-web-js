@@ -10,28 +10,26 @@ global.client = {};
 // Initialize a new client instance
 router.post('/initialize', async (req, res) => {
     client[req.body.workspace_id] = null;
-    try {
-        fs.rmSync(path.join(__dirname, '../whatsapp_sessions/session-'+req.body.workspace_id), { recursive: true });
-        await client[req.body.workspace_id].disconnect();
-    } catch (err) {}
 
     client[req.body.workspace_id] = new Client({
         restartOnAuthFail: true,
+        puppeteer: {
+			args: ['--no-sandbox']
+		},
         authStrategy: new LocalAuth({
           clientId : req.body.workspace_id,
-          dataPath :  path.join(__dirname, '../whatsapp_sessions')
+          dataPath : path.join(__dirname, '../whatsapp_sessions')
         }),
-        puppeteer: { headless: true },
     });
 
     client[req.body.workspace_id].initialize().catch((err)=>{
-        console.log('error');
+        console.log(err);
     });
 
     var file_path = path.join(__dirname, '../qr/'+req.body.workspace_id+'.qr');
     client[req.body.workspace_id].on("qr", (qrcode) => {
         fs.writeFileSync(file_path, qrcode);
-        console.log('qr generated');
+        console.log('qr generated for workspace-' + req.body.workspace_id+' at '+ new Date());
     });
 
     client[req.body.workspace_id].on("authenticated", () => {
@@ -59,27 +57,80 @@ router.post('/initialize', async (req, res) => {
 router.get('/qr', async(req, res) => {
     var workspace_id = req.body.workspace_id;
     var file_path = path.join(__dirname, '../qr/'+workspace_id+'.qr');
-    
-    let client_obj = client[workspace_id];
     try {
-        client_obj.getState().then((data) => {
+        client[workspace_id].getState().then((data) => {
             if(data){
-                res.send("authenticated");
+                console.log(data);
+                res.send({
+                    'status' : 200,
+                    'data'   : 'authenticated',
+                    'message': 'authenticated'
+                });
             }else{
                 try {
                     var data = fs.readFileSync(file_path).toString();
-                    res.send(data);
+                    res.send({
+                        'status'  : 200,
+                        'data'    : 'qr',
+                        'message' : data
+                    });
                 } catch (error) {
-                    res.status(400).send('Qr Not Found')
+                    res.status(200).send({
+                        'status' : 'error',
+                        'data'   : 'qr_not_found',
+                        'message': 'QR not found please try after sometime'
+                    })
                 }
             }
         }).catch((error) => {
-            res.status(500).send('Client Not Initialized');
+            res.status(500).send({
+                'status' : 'error',
+                'data'   : 'client_not_initialized',
+                'message': 'Client Not Initialized'
+            });
         });
     } catch (error) {
-        res.status(500).send('Client Not Initialized');
+        res.status(500).send({
+            'status' : 'error',
+            'data'   : 'client_not_initialized',
+            'message': 'Client Not Initialized'
+        });
     }
 });
+
+// Check Auth 
+router.get('/check', (req, res) => {
+    var workspace_id = req.body.workspace_id;
+    try {
+        client[workspace_id].getState().then((data) => {
+            if(data){
+                res.send({
+                    'status' : 200,
+                    'data'   : 'authenticated',
+                    'message': data
+                });
+            }else{
+                res.send({
+                    'status' : 200,
+                    'data'   : 'disconnected',
+                    'message': data
+                });
+            }
+        }).catch((error) => {
+            res.status(500).send({
+                'status' : 'error',
+                'data'   : 'client_not_initialized',
+                'message': 'Client Not Initialized'
+            });
+        });
+    } catch (error) {
+        res.status(500).send({
+            'status' : 'error',
+            'data'   : 'client_not_initialized',
+            'message': 'Client Not Initialized'
+        });
+    }
+})
 
 module.exports = router;
 

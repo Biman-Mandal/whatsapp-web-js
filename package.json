@@ -14,5 +14,8 @@
     "morgan": "~1.9.1",
     "path": "^0.12.7",
     "whatsapp-web.js": "^1.19.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
   }
 }

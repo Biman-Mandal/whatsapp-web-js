@@ -5,7 +5,8 @@ const path    = require('path');
 
 const indexRouter    = require('./routes/index');
 const usersRouter    = require('./routes/users');
-const whatsappRouter = require('./routes/auth');
+const whatsappAuthRouter    = require('./routes/auth');
+const whatsappContactRouter = require('./routes/contact');
 
 var app = express();
 
@@ -15,7 +16,8 @@ app.use(express.urlencoded({ extended: false }));
 // app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/whatsapp-js', whatsappRouter);
+app.use('/whatsapp-js', whatsappAuthRouter);
+app.use('/whatsapp-js/contact', whatsappContactRouter);
 
 app.use(function (req, res, next) {
   console.log(req.method + " : " + req.path);

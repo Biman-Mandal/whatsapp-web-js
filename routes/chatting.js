@@ -2,7 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const fs      = require('fs');
 const v_url   = require('valid-url');
-const { MessageMedia, Location } = require("whatsapp-web.js");
+const { MessageMedia, Location, Message, MessageSendOptions } = require("whatsapp-web.js");
 const request = require('request')
 
 router.post('/sendMessage/:phone', async(req, res)=>{
@@ -24,37 +24,42 @@ router.post('/sendMessage/:phone', async(req, res)=>{
     });
 });
 
-router.post('/sendImage/:phone', async (req,res) => {
-    let phone   = req.params.phone;
-    let image   = req.body.image;
+router.post('/sendAttachment/:phone', async (req,res) => {
+    let phone       = req.params.phone;
+    let file_path   = req.body.file_path;
     let caption = req.body.caption;
-    if (phone == undefined || image == undefined) {
-        res.status(500).send({ status: "error", message: "Please enter valid phone and url of image" })
+    if (phone == undefined || file_path == undefined) {
+        res.status(500).send({ status: "error", message: "Please enter valid phone and url of attachment" })
     } else {
-        if (v_url.isWebUri(image)) {
+        if (v_url.isWebUri(file_path)) {
             if (!fs.existsSync('./temp')) {
                 await fs.mkdirSync('./temp');
             }
-
-            var path = './temp/' + image.split("/").slice(-1)[0]
-            media_downloader(image, path, () => {
+            var path = './temp/' + file_path.split("/").slice(-1)[0]
+            media_downloader(file_path, path, () => {
                 let media = MessageMedia.fromFilePath(path);
-                client[req.body.workspace_id][req.body.connection_no].sendMessage(`${phone}@c.us`, media, { caption: caption || '' }).then((response) => {
+                client[req.body.workspace_id][req.body.connection_no].sendMessage(`${phone}@c.us`, media, 
+                    {
+                        caption: caption || '', 
+                        sendMediaAsDocument: true,
+                        sendAudioAsVoice: true
+                    }).then((response) => {
                     if (response.id.fromMe) {
                         fs.unlinkSync(path)
                     }
-                    console.log('image sent'+req.body.workspace_id+' '+req.body.connection_no)
+                    console.log('Attachment sent'+req.body.workspace_id+' '+req.body.connection_no)
                 }).catch((err) =>{
-                    console.log('error sending image'+req.body.workspace_id+' '+req.body.connection_no)
+                    console.log(err);
+                    console.log('error sending Attachment'+req.body.workspace_id+' '+req.body.connection_no)
                 });
             })
             res.send({
                 'status' : 200,
-                'data'   : 'send_image',
+                'data'   : 'send_attachment',
                 'message': {
                     'workspace_id'   : req.body.workspace_id,
                     'connection_no'  : req.body.connection_no,
-                    'message' : 'Image Sent Successfully'
+                    'message' : 'Attachment Sent Successfully'
                 }
             });
         } else {
@@ -62,7 +67,6 @@ router.post('/sendImage/:phone', async (req,res) => {
         }
     }
 });
-
 
 const media_downloader = (url, path, callback) => {
     request.head(url, (err, res, body) => {

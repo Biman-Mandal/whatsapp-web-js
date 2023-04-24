@@ -7,6 +7,7 @@ const indexRouter    = require('./routes/index');
 const usersRouter    = require('./routes/users');
 const whatsappAuthRouter    = require('./routes/auth');
 const whatsappContactRouter = require('./routes/contact');
+const whatsappChattingRouter= require('./routes/chatting');
 
 var app = express();
 
@@ -18,6 +19,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/whatsapp-js/auth', whatsappAuthRouter);
 app.use('/whatsapp-js/contact', whatsappContactRouter);
+app.use('/whatsapp-js/chatting', whatsappChattingRouter);
 
 app.use(function (req, res, next) {
   console.log(req.method + " : " + req.path);

@@ -27,7 +27,7 @@ router.post('/sendMessage/:phone', async(req, res)=>{
 router.post('/sendAttachment/:phone', async (req,res) => {
     let phone       = req.params.phone;
     let file_path   = req.body.file_path;
-    let caption = req.body.caption;
+    let caption     = req.body.caption;
     if (phone == undefined || file_path == undefined) {
         res.status(500).send({ status: "error", message: "Please enter valid phone and url of attachment" })
     } else {
@@ -38,12 +38,11 @@ router.post('/sendAttachment/:phone', async (req,res) => {
             var path = './temp/' + file_path.split("/").slice(-1)[0]
             media_downloader(file_path, path, () => {
                 let media = MessageMedia.fromFilePath(path);
-                client[req.body.workspace_id][req.body.connection_no].sendMessage(`${phone}@c.us`, media, 
-                    {
+                client[req.body.workspace_id][req.body.connection_no].sendMessage(`${phone}@c.us`, media, {
                         caption: caption || '', 
                         sendMediaAsDocument: true,
                         sendAudioAsVoice: true
-                    }).then((response) => {
+                }).then((response) => {
                     if (response.id.fromMe) {
                         fs.unlinkSync(path)
                     }
@@ -65,6 +64,46 @@ router.post('/sendAttachment/:phone', async (req,res) => {
         } else {
             res.status(500).send({ status:'error', message: 'Invalid URL' })
         }
+    }
+});
+
+// Not USED
+
+router.post('/sendAudio/:phone', async (req,res) => {
+    let phone       = req.params.phone;
+    let file_path   = req.body.file_path;
+    if (v_url.isWebUri(file_path)) {
+        if (!fs.existsSync('./temp-audio-file')) {
+            await fs.mkdirSync('./temp-audio-file');
+        }
+        var path = './temp/' + file_path.split("/").slice(-1)[0]
+        media_downloader(file_path, path, () => {
+            let media = MessageMedia.fromFilePath(path);
+            client[req.body.workspace_id][req.body.connection_no].sendMessage(`${phone}@c.us`, media, {
+                caption: caption || '',
+                sendMediaAsDocument: true,
+                sendAudioAsVoice: true
+            }).then((response) => {
+                if (response.id.fromMe) {
+                    fs.unlinkSync(path)
+                }
+                console.log('Audio sent'+req.body.workspace_id+' '+req.body.connection_no)
+            }).catch((err) =>{
+                // Error Response
+                console.log('error sending Audio'+req.body.workspace_id+' '+req.body.connection_no)
+            });
+        })
+            // Sending Response
+            res.send({
+            'status' : 200,
+            'data'   : 'send_audio',
+            'message': {
+                'workspace_id'   : req.body.workspace_id,
+                'connection_no'  : req.body.connection_no,
+                'data' : 'Successfully sent audio message.'
+            }});
+    } else {
+        res.status(500).send({ status:'error', message: 'Invalid URL' })
     }
 });
 

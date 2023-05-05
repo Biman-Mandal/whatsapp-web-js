@@ -48,23 +48,27 @@ router.post('/initialize', async (req, res) => {
         console.log("AUTH Failed !");
     });
 
-    // On receive message 
-    client[req.body.workspace_id][req.body.connection_no].on('message', message => {
+    // On send message 
+    client[req.body.workspace_id][req.body.connection_no].on('message_create', message => {
         // Sending to the callback url OChats web js
         axios.post('http://localhost:8000/api/whatsapp/web-js/', {
             workspace_id  : req.body.workspace_id,
             connection_no : req.body.connection_no,
             message       : message,
-            connection    : 'active'
+            connection    : 'message_create_api',
         })
         .then(function (response) {
-            console.log('success message response'+req.body.workspace_id+"-"+req.body.connection_no);
-            // console.log(response);
+            console.log('success sent to api'+req.body.workspace_id+"-"+req.body.connection_no);
         })
         .catch(function (error) {
-            console.log(error);
+            console.log('error');
         });
         console.log('RECEIVED New Message'+req.body.workspace_id+"-"+req.body.connection_no);
+    });
+
+    // On receive message 
+    client[req.body.workspace_id][req.body.connection_no].on('message', message => {
+        
     });
        
     client[req.body.workspace_id][req.body.connection_no].on("ready", () => {
@@ -186,8 +190,8 @@ router.get('/check', (req, res) => {
 })
 
 router.delete('/delete', async(req, res) => {
-    var workspace_id  = req.body.workspace_id;
-    var connection_no = req.body.connection_no;
+    let workspace_id  = req.body.workspace_id;
+    let connection_no = req.body.connection_no;
     let directory = path.join(__dirname, '../whatsapp_sessions/session-'+workspace_id+'-'+connection_no);
     // If Client Exists
     try {

@@ -10,9 +10,6 @@ global.client = {};
 
 // Initialize a new client instance
 router.post('/initialize', async (req, res) => {
-    let nowDate = new Date();
-    console.log(nowDate.getMinutes(), nowDate.getSeconds());
-
     client[req.body.workspace_id] = {};
     client[req.body.workspace_id][req.body.connection_no] = null;
     client[req.body.workspace_id][req.body.connection_no] = new Client({
@@ -33,10 +30,8 @@ router.post('/initialize', async (req, res) => {
     });
 
     var file_path = path.join(__dirname, '../qr/'+req.body.workspace_id+'-'+req.body.connection_no+'.qr');
-    client[req.body.workspace_id][req.body.connection_no].on("qr", (qrcode) => {
-        let newDate = new Date();
-        console.log(newDate.getMinutes(), newDate.getSeconds());
-        fs.writeFileSync(file_path, qrcode);
+    client[req.body.workspace_id][req.body.connection_no].on("qr", (qr_code) => {
+        fs.writeFileSync(file_path, qr_code);
         console.log('qr generated for workspace-' + req.body.workspace_id);
     });
 
@@ -68,7 +63,6 @@ router.post('/initialize', async (req, res) => {
 
     // On receive message 
     client[req.body.workspace_id][req.body.connection_no].on('message', message => {
-        
     });
        
     client[req.body.workspace_id][req.body.connection_no].on("ready", () => {

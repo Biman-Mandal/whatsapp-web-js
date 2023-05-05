@@ -9,19 +9,32 @@ router.post('/sendMessage/:phone', async(req, res)=>{
     let phone   = req.params.phone;
     let message = req.body.message;
     client[req.body.workspace_id][req.body.connection_no].sendMessage(phone + '@c.us', message).then((response) => {
-        console.log('success message sent'+req.body.workspace_id+' '+req.body.connection_no)
+        res.send({
+            'status' : 200,
+            'data'   : 'send_message',
+            'message': {
+                'workspace_id'   : req.body.workspace_id,
+                'connection_no'  : req.body.connection_no,
+                'message_id'     : response._data.id.id,
+                'message' : 'Message Sent Successfully'
+            }
+        });
     }).catch((err) =>{
+        res.status(400).send({
+            'status' :  400,
+            'data'   : 'error'
+        });
         console.log('error sending message'+req.body.workspace_id+' '+req.body.connection_no)
     });
-    res.send({
-        'status' : 200,
-        'data'   : 'send_message',
-        'message': {
-            'workspace_id'   : req.body.workspace_id,
-            'connection_no'  : req.body.connection_no,
-            'message' : 'Message Sent Successfully'
-        }
-    });
+    // res.send({
+    //     'status' : 200,
+    //     'data'   : 'send_message',
+    //     'message': {
+    //         'workspace_id'   : req.body.workspace_id,
+    //         'connection_no'  : req.body.connection_no,
+    //         'message' : 'Message Sent Successfully'
+    //     }
+    // });
 });
 
 router.post('/sendAttachment/:phone', async (req,res) => {

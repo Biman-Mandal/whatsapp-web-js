@@ -5,7 +5,6 @@ const path    = require('path');
 const axios   = require('axios');
 
 router.get('/get', async(req, res)=>{
-    console.log(client[req.body.workspace_id][req.body.connection_no]);
     try {
         client[req.body.workspace_id][req.body.connection_no].getContacts().then((contacts) => {
             res.send({

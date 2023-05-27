@@ -26,15 +26,6 @@ router.post('/sendMessage/:phone', async(req, res)=>{
         });
         console.log('error sending message'+req.body.workspace_id+' '+req.body.connection_no)
     });
-    // res.send({
-    //     'status' : 200,
-    //     'data'   : 'send_message',
-    //     'message': {
-    //         'workspace_id'   : req.body.workspace_id,
-    //         'connection_no'  : req.body.connection_no,
-    //         'message' : 'Message Sent Successfully'
-    //     }
-    // });
 });
 
 router.post('/sendAttachment/:phone', async (req,res) => {

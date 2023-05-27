@@ -43,7 +43,7 @@ router.post('/initialize', async (req, res) => {
         console.log("AUTH Failed !");
     });
 
-    // On send message 
+    // On send message And Receive Message
     client[req.body.workspace_id][req.body.connection_no].on('message_create', message => {
         // Sending to the callback url OChats web js
         axios.post('http://localhost:8000/api/whatsapp/web-js/', {

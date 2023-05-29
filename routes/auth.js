@@ -10,8 +10,16 @@ global.client = {};
 
 // Initialize a new client instance
 router.post('/initialize', async (req, res) => {
-    client[req.body.workspace_id] = {};
-    client[req.body.workspace_id][req.body.connection_no] = null;
+    // obj["key"] !== undefined;
+    if(client[req.body.workspace_id] == undefined) {
+        client[req.body.workspace_id] = {}
+    }
+    if(client[req.body.workspace_id][req.body.connection_no] == undefined){
+        client[req.body.workspace_id][req.body.connection_no] = null;
+    }
+
+    // client[req.body.workspace_id] = {};
+    // client[req.body.workspace_id][req.body.connection_no] = null;
     client[req.body.workspace_id][req.body.connection_no] = new Client({
         restartOnAuthFail: true,
         puppeteer: {
@@ -87,6 +95,7 @@ router.post('/initialize', async (req, res) => {
         .then(function (response) {
             fs.rmSync(directory, { recursive: true, force: true });
             console.log('success disconnected-'+req.body.workspace_id+"-"+req.body.connection_no);
+            client[req.body.workspace_id][req.body.connection_no] = null;
         })
         .catch(function (error) {
             console.log(error);

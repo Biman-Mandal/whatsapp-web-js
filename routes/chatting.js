@@ -42,29 +42,39 @@ router.post('/sendAttachment/:phone', async (req,res) => {
             var path = './temp/' + file_path.split("/").slice(-1)[0]
             media_downloader(file_path, path, () => {
                 let media = MessageMedia.fromFilePath(path);
-                client[req.body.workspace_id][req.body.connection_no].sendMessage(`${phone}@c.us`, media, {
+                try {
+                    client[req.body.workspace_id][req.body.connection_no].sendMessage(`${phone}@c.us`, media, {
                         caption: caption || '', 
                         sendMediaAsDocument: true,
                         sendAudioAsVoice: true
-                }).then((response) => {
-                    if (response.id.fromMe) {
-                        fs.unlinkSync(path)
-                    }
-                    console.log('Attachment sent'+req.body.workspace_id+' '+req.body.connection_no)
-                }).catch((err) =>{
-                    console.log(err);
-                    console.log('error sending Attachment'+req.body.workspace_id+' '+req.body.connection_no)
-                });
-            })
-            res.send({
-                'status' : 200,
-                'data'   : 'send_attachment',
-                'message': {
-                    'workspace_id'   : req.body.workspace_id,
-                    'connection_no'  : req.body.connection_no,
-                    'message' : 'Attachment Sent Successfully'
+                    }).then((response) => {
+                        if (response.id.fromMe) {
+                            fs.unlinkSync(path)
+                        }
+                        res.send({
+                            'status' : 200,
+                            'data'   : 'send_attachment',
+                            'message': {
+                                'workspace_id'   : req.body.workspace_id,
+                                'connection_no'  : req.body.connection_no,
+                                'message' : 'Attachment Sent Successfully',
+                                'message_id'     : response._data.id.id,
+                            }
+                        });
+                        console.log('Attachment sent'+req.body.workspace_id+' '+req.body.connection_no)
+                    }).catch((err) =>{
+                        res.status(400).send({
+                            'status' :  400,
+                            'data'   : 'error'
+                        });
+                        console.log(err);
+                        console.log('error sending Attachment'+req.body.workspace_id+' '+req.body.connection_no)
+                    });
+                } catch (error) {
+                    console.log('send Attachment catch error')
                 }
-            });
+            })
+            
         } else {
             res.status(500).send({ status:'error', message: 'Invalid URL' })
         }

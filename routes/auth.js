@@ -46,7 +46,8 @@ router.post('/initialize', async (req, res) => {
     // On send message And Receive Message
     client[req.body.workspace_id][req.body.connection_no].on('message_create', message => {
         // Sending to the callback url OChats web js
-        axios.post('http://localhost:8000/api/whatsapp/web-js/', {
+        let message_create_url = process.env.LARAVEL_BASE_URL+'/api/whatsapp/web-js/';
+        axios.post(message_create_url, {
             workspace_id  : req.body.workspace_id,
             connection_no : req.body.connection_no,
             message       : message,
@@ -56,13 +57,14 @@ router.post('/initialize', async (req, res) => {
             console.log('success sent to api'+req.body.workspace_id+"-"+req.body.connection_no);
         })
         .catch(function (error) {
-            console.log('error');
+            console.log('error axios on message_create');
         });
         console.log('RECEIVED New Message'+req.body.workspace_id+"-"+req.body.connection_no);
     });
 
     // On receive message 
     client[req.body.workspace_id][req.body.connection_no].on('message', message => {
+		// client[req.body.workspace_id][req.body.connection_no].sendMessage(message.from, 'testing new whatsapp web');
     });
        
     client[req.body.workspace_id][req.body.connection_no].on("ready", () => {
@@ -76,8 +78,8 @@ router.post('/initialize', async (req, res) => {
     client[req.body.workspace_id][req.body.connection_no].on("disconnected", () => {
         console.log("disconnected-"+ req.body.workspace_id+"-"+req.body.connection_no);
         let directory = path.join(__dirname, '../whatsapp_sessions/session-'+req.body.workspace_id+'-'+req.body.connection_no);
-
-        axios.post('http://localhost:8000/api/whatsapp/web-js/', {
+        let disconnected_url = process.env.LARAVEL_BASE_URL+'/api/whatsapp/web-js/';
+        axios.post(disconnected_url, {
             workspace_id  : req.body.workspace_id,
             connection_no : req.body.connection_no,
             connection    : 'disconnected'
@@ -112,7 +114,7 @@ router.get('/client-status', (req, res)=> {
                     }
                 });
             }else{
-                try {
+                if (fs.existsSync(file_path)) {
                     var data = fs.readFileSync(file_path).toString();
                     res.send({
                         'status'  : 200,
@@ -123,7 +125,7 @@ router.get('/client-status', (req, res)=> {
                             'qr_code' : data
                         }
                     });
-                } catch (error) {
+                }else{
                     res.status(200).send({
                         'status' : 'error',
                         'data'   : 'qr_not_found',

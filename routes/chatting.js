@@ -82,7 +82,6 @@ router.post('/sendAttachment/:phone', async (req,res) => {
 });
 
 // Not USED
-
 router.post('/sendAudio/:phone', async (req,res) => {
     let phone       = req.params.phone;
     let file_path   = req.body.file_path;
@@ -118,6 +117,31 @@ router.post('/sendAudio/:phone', async (req,res) => {
             }});
     } else {
         res.status(500).send({ status:'error', message: 'Invalid URL' })
+    }
+});
+
+router.get('/chat-history',async function(req,res){
+    let client_data = client[req.body.workspace_id][req.body.connection_no];
+    let chatId = req.body.chatId;
+    try {
+        const chat  = await client_data.getChatById(chatId);
+        var messages = await chat.fetchMessages({limit: 100});
+
+        res.status(200).json({
+            status:true,
+            response: messages,
+            length: Object.keys(messages).length,
+            chat: Object.keys(messages).chat_id,
+            workspace_id: req.body.workspace_id,
+            connection_no: req.body.connection_no,
+        })
+    } catch (error) {
+        res.status(500).json({
+            status:false,
+            response: error,
+            length: 0,
+            chat: null,
+        })
     }
 });
 
